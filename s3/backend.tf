@@ -10,7 +10,7 @@ terraform {
     bucket         = "terraform-remote-state-bucket-s3"
     dynamodb_table = "terraform-remote-state-dynamo-lock"
     encrypt        = true
-    key            = "cs807_network/terraform.tfstate"
+    key            = "cs807_s3/terraform.tfstate"
     region         = "eu-west-2"
   }
 
