@@ -1,13 +1,3 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = ">= 3.40.0"
-    }
-  }
-  version = ">= 0.15.0"
-}
-
 locals {
   provisioned_date = formatdate("DD MMM YYYY hh:mm ZZZ", timestamp())
 
@@ -28,6 +18,7 @@ resource "aws_vpc" "main" {
     "dmc:environment-type" = var.environment
     "dmc:provisioned-by"   = "Terraform"
     "dmc:provisioned-on"   = local.provisioned_date
+    "Name"                 = "${var.environment}-VPC"
   }
 
   lifecycle {
@@ -50,6 +41,7 @@ resource "aws_subnet" "public" {
     "dmc:environment-type" = var.environment
     "dmc:provisioned-by"   = "Terraform"
     "dmc:provisioned-on"   = local.provisioned_date
+    "Name"                 = "Public Subnet (${each.key})"
   }
 
   lifecycle {
@@ -66,6 +58,7 @@ resource "aws_internet_gateway" "this" {
     "dmc:environment-type" = var.environment
     "dmc:provisioned-by"   = "Terraform"
     "dmc:provisioned-on"   = local.provisioned_date
+    "Name"                 = "Internet Gateway"
   }
 
   lifecycle {
@@ -73,4 +66,33 @@ resource "aws_internet_gateway" "this" {
       tags["dmc:provisioned-on"]
     ]
   }
+}
+
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.this.id
+  }
+
+  tags = {
+    "dmc:environment-type" = var.environment
+    "dmc:provisioned-by"   = "Terraform"
+    "dmc:provisioned-on"   = local.provisioned_date
+    "Name"                 = "Public Route Table"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      tags["dmc:provisioned-on"]
+    ]
+  }
+}
+
+resource "aws_route_table_association" "public" {
+  for_each = local.az_details
+
+  route_table_id = aws_route_table.public.id
+  subnet_id      = aws_subnet.public[each.key].id
 }

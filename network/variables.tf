@@ -6,8 +6,8 @@ variable "region" {
 
 variable "vpc_cidr_block" {
   description = "The base CIDR block for the VPC."
-  type        = list(string)
-  default     = ["10.10.0.0/16"]
+  type        = string
+  default     = "10.10.0.0/16"
 }
 
 variable "environment" {
