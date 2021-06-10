@@ -1,0 +1,63 @@
+---
+- name: Basic image software installation & configuration
+  hosts: all
+  become: yes
+  vars:
+    base_packages:
+      - "linux-headers-{{ ansible_kernel }}"
+      - build-essential
+      - linux-image-extra-virtual
+      - p7zip-full
+
+  tasks:
+    - name: Upgrade apt cache and upgrade all packages
+      ansible.builtin.apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Install required base packages
+      ansible.builtin.apt:
+        name: "{{ base_packages }}"
+        state: present
+        update_cache: yes
+
+    - name: Disable Nouveau Driver
+      ansible.builtin.template:
+        dest: /etc/modprobe.d/blacklist-nvidia-nouveau.conf
+        force: yes
+        group: root
+        mode: "0644"
+        newline_sequence: \n
+        owner: root
+        src: ../files/blacklist-nvidia-nouveau.conf.j2
+
+    - name: Download NVIDIA Drivers
+      ansible.builtin.get_url:
+        dest: /home/ubuntu/NVIDIA-Linux-x86_64-460.73.01.run
+        url: https://uk.download.nvidia.com/tesla/460.73.01/NVIDIA-Linux-x86_64-460.73.01.run
+
+    - name: Download Hashcat
+      ansible.builtin.get_url:
+        dest: /home/ubuntu/hashcat-6.2.1.7z
+        url: https://hashcat.net/files/hashcat-6.2.1.7z
+
+    - name: Get the rules list
+      ansible.builtin.git:
+        repo: https://github.com/NotSoSecure/password_cracking_rules.git
+        dest: /home/ubuntu/rules
+
+    - name: Get the RockYou wordlist
+      ansible.builtin.git:
+        repo: https://github.com/danielmiessler/SecLists.git
+        dest: /home/ubuntu/wordlist
+
+    - name: Copy the password hash file
+      ansible.builtin.template:
+        dest: /home/ubuntu/password.hash
+        force: yes
+        group: ubuntu
+        mode: "0644"
+        newline_sequence: \n
+        owner: ubuntu
+        src: ../../files/password.hash
+

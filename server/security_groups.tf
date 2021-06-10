@@ -4,7 +4,7 @@ resource "aws_security_group" "server" {
   vpc_id      = data.terraform_remote_state.net.outputs.vpc_id
 
   ingress {
-    cidr_blocks = var.incoming_cidr_blocks
+    cidr_blocks = var.ssh_cidr
     description = "Allow incoming SSH connections"
     from_port   = 22
     protocol    = "tcp"

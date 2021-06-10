@@ -10,8 +10,7 @@ variable "environment" {
   default     = "Strathclyde-CS807"
 }
 
-variable "instance_type" {
-  description = "The size and type of the instance."
-  type        = string
-  default     = "t2.micro"
+variable "ssh_cidr" {
+  description = "CIDR blocks allowed to connect to the instance via SSH."
+  type        = list(string)
 }
